@@ -1,0 +1,105 @@
+{
+  "profile": {
+    "name": "Cahit",
+    "revtag": "@cahitugur"
+  },
+  "usualSuspects": [
+    {
+      "name": "Brian",
+      "revtag": ""
+    },
+    {
+      "name": "Cahit",
+      "revtag": "@cahitugur"
+    },
+    {
+      "name": "Colm",
+      "revtag": ""
+    },
+    {
+      "name": "Cormac",
+      "revtag": ""
+    },
+    {
+      "name": "Dillon",
+      "revtag": "@dillon"
+    },
+    {
+      "name": "Euan",
+      "revtag": "@euan"
+    },
+    {
+      "name": "Evangelia",
+      "revtag": "@eva"
+    },
+    {
+      "name": "Ferhat",
+      "revtag": ""
+    },
+    {
+      "name": "Hannan",
+      "revtag": "@hannan"
+    },
+    {
+      "name": "James",
+      "revtag": "@james"
+    },
+    {
+      "name": "Kevin",
+      "revtag": "@kevin"
+    },
+    {
+      "name": "Kunal",
+      "revtag": "@kunal"
+    },
+    {
+      "name": "Lauren",
+      "revtag": "@lalaugur"
+    },
+    {
+      "name": "Liam",
+      "revtag": "@liam"
+    },
+    {
+      "name": "Luke",
+      "revtag": ""
+    },
+    {
+      "name": "Marcus",
+      "revtag": ""
+    },
+    {
+      "name": "Mic",
+      "revtag": ""
+    },
+    {
+      "name": "Muireann",
+      "revtag": ""
+    },
+    {
+      "name": "Otto",
+      "revtag": ""
+    },
+    {
+      "name": "Patryk",
+      "revtag": "@patryk"
+    },
+    {
+      "name": "Pawel",
+      "revtag": ""
+    },
+    {
+      "name": "Scott",
+      "revtag": "@scott"
+    },
+    {
+      "name": "Tuhin",
+      "revtag": ""
+    }
+  ],
+  "gameSettings": {
+    "currency": "EUR",
+    "defaultBuyIn": "30",
+    "settlementMode": "greedy"
+  }
+}
