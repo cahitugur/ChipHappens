@@ -1,7 +1,7 @@
 // ChipHappens — Service Worker
 // Cache-first for static assets, network-first for HTML pages.
 
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const CACHE_NAME = `chiphappens-${CACHE_VERSION}`;
 
 // ── Install: pre-cache shell ──────────────────────────────────────────────────
@@ -13,8 +13,10 @@ self.addEventListener('install', (event) => {
         cache.addAll([
           '/ChipHappens/',
           '/ChipHappens/index.html',
+          '/ChipHappens/index.txt',
           '/ChipHappens/side-pot',
           '/ChipHappens/side-pot.html',
+          '/ChipHappens/side-pot.txt',
           '/ChipHappens/icons/app_icon.png',
           '/ChipHappens/manifest.webmanifest',
         ])
