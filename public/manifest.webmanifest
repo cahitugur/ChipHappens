@@ -2,6 +2,7 @@
   "name": "ChipHappens: Poker Payout Calculator",
   "short_name": "ChipHappens",
   "description": "Calculate poker cash game payouts and side pots instantly.",
+  "id": "/ChipHappens/",
   "start_url": "/ChipHappens/",
   "scope": "/ChipHappens/",
   "display": "standalone",

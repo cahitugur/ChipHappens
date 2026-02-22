@@ -14,10 +14,10 @@ const montserrat = Montserrat({
 export const metadata: Metadata = {
   title: 'ChipHappens – Poker Payout Calculator',
   description: 'Calculate poker cash game payouts and side pots instantly.',
-  manifest: '/manifest.webmanifest',
+  manifest: '/ChipHappens/manifest.webmanifest',
   icons: {
-    icon: '/icons/app_icon.png',
-    apple: '/icons/app_icon.png',
+    icon: '/ChipHappens/icons/app_icon.png',
+    apple: '/ChipHappens/icons/app_icon.png',
   },
   appleWebApp: {
     capable: true,
