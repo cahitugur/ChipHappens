@@ -1,4 +1,4 @@
-# Poker Payout Calculator (Capacitor-ready)
+# Payout Calculator (Capacitor-ready)
 
 This folder contains the refactored, future-proof app structure for Capacitor.
 
