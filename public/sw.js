@@ -1,7 +1,7 @@
 // ChipHappens — Service Worker
 // Cache-first for static assets, network-first for HTML pages.
 
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const CACHE_NAME = `chiphappens-${CACHE_VERSION}`;
 
 // ── Install: pre-cache shell ──────────────────────────────────────────────────
@@ -12,7 +12,9 @@ self.addEventListener('install', (event) => {
       .then((cache) =>
         cache.addAll([
           '/ChipHappens/',
+          '/ChipHappens/index.html',
           '/ChipHappens/side-pot',
+          '/ChipHappens/side-pot.html',
           '/ChipHappens/icons/app_icon.png',
           '/ChipHappens/manifest.webmanifest',
         ])
@@ -56,7 +58,19 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
           return response;
         })
-        .catch(() => caches.match(request))
+        .catch(async () => {
+          // Try exact match first, then .html fallback for clean URLs
+          const cached = await caches.match(request);
+          if (cached) return cached;
+
+          // /ChipHappens/side-pot -> /ChipHappens/side-pot.html
+          const htmlUrl = request.url.replace(/\/?$/, '.html').replace('/.html', '.html');
+          const htmlCached = await caches.match(htmlUrl);
+          if (htmlCached) return htmlCached;
+
+          // Last resort: serve the index page
+          return caches.match('/ChipHappens/') || caches.match('/ChipHappens/index.html');
+        })
     );
   } else {
     event.respondWith(
