@@ -1,24 +1,18 @@
 // ChipHappens — Service Worker
 // Cache-first for static assets, network-first for HTML pages.
+// Precache list is injected at build time by scripts/inject-precache.mjs
 
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v-__BUILD_HASH__';
 const CACHE_NAME = `chiphappens-${CACHE_VERSION}`;
 
-// ── Install: pre-cache shell ──────────────────────────────────────────────────
+// ── Install: pre-cache all static assets ──────────────────────────────────────
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches
       .open(CACHE_NAME)
       .then((cache) =>
         cache.addAll([
-          '/ChipHappens/',
-          '/ChipHappens/index.html',
-          '/ChipHappens/index.txt',
-          '/ChipHappens/side-pot',
-          '/ChipHappens/side-pot.html',
-          '/ChipHappens/side-pot.txt',
-          '/ChipHappens/icons/app_icon.png',
-          '/ChipHappens/manifest.webmanifest',
+/* __PRECACHE_ASSETS__ */
         ])
       )
       .then(() => self.skipWaiting())
