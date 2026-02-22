@@ -1,7 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'export',
-  // basePath: '/poker_payout_calculator', // uncomment for GitHub Pages
+  basePath: '/ChipHappens',
+  assetPrefix: '/ChipHappens/',
   images: {
     unoptimized: true,
   },
