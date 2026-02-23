@@ -42,10 +42,6 @@ export function SettingsModal() {
             <div className="modal-body">
               <p className="muted-text">Choose a settings category.</p>
               <div className="settings-list">
-                <button className="settings-item-btn" onClick={() => setActivePanel('profile')}>
-                  <span>Profile</span>
-                  <span className="settings-item-meta">Edit name and revtag</span>
-                </button>
                 <button className="settings-item-btn" onClick={() => setActivePanel('suspects')}>
                   <span>Usual Suspects</span>
                   <span className="settings-item-meta">Manage quick-add players</span>
