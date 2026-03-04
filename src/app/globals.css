@@ -1,3 +1,51 @@
+/* Modal styles moved from SignInModal.tsx */
+.ch-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.ch-modal {
+  background: #18181b;
+  color: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  min-width: 320px;
+  box-shadow: 0 2px 16px #0008;
+}
+.ch-input {
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #333;
+  background: #222;
+  color: #fff;
+}
+.ch-btn {
+  background: #d4a832;
+  color: #18181b;
+  font-weight: bold;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem;
+  cursor: pointer;
+}
+.ch-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+.ch-link {
+  color: #d4a832;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+}
 @import "tailwindcss";
 
 /* ── Design tokens ── */
