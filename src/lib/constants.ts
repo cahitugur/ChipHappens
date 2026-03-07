@@ -1,5 +1,7 @@
 export const MAX_ROWS = 32;
 export const PAYOUT_STORAGE_KEY = 'poker-payout:v1';
+/** Dispatched when selected group is changed (e.g. from SelectGroupModal). Detail: { selectedGroupId: string | null }. */
+export const SELECTED_GROUP_CHANGED_EVENT = 'chiphappens:selectedGroupChanged';
 export const SIDEPOT_STORAGE_KEY = 'poker-sidepot:v1';
 export const SETTINGS_STORAGE_KEY = 'poker-calc-settings';
 export const SESSIONS_STORAGE_KEY = 'poker-sessions:v1';

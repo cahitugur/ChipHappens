@@ -7,7 +7,9 @@ import { ProfilePanel } from '../settings/ProfilePanel';
 import { APP_VERSION } from '@/lib/constants';
 import { SettingsModal } from '../settings/SettingsModal';
 import { SignInModal } from './SignInModal';
+import { SelectGroupModal } from '../payout/SelectGroupModal';
 import { useSettings } from '@/hooks/useSettings';
+import { useSelectGroupModal } from '@/hooks/useSelectGroupModal';
 
 const PROFILE_ONBOARDING_KEY = 'chiphappens:profile_onboarding';
 
@@ -19,6 +21,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const accountMenuRef = useRef<HTMLDivElement>(null);
   const { user, signOut } = useAuth();
   const { settings } = useSettings();
+  const { openSelectGroupModal, setOpenSelectGroupModal } = useSelectGroupModal();
 
   // After first sign-in, open profile modal so user can set name and revtag
   useEffect(() => {
@@ -119,6 +122,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       )}
       <SignInModal open={signInOpen} onClose={() => setSignInOpen(false)} />
       {profileOpen && <ProfilePanelWrapper onClose={() => setProfileOpen(false)} />}
+      <SelectGroupModal open={openSelectGroupModal} onClose={() => setOpenSelectGroupModal(false)} />
       {children}
       <footer className="text-center text-muted text-xs py-5">
         {APP_VERSION}

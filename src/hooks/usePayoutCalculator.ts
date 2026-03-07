@@ -7,7 +7,7 @@ import { calculatePayouts } from '@/lib/calc/payout';
 import { computeGreedyTransactions } from '@/lib/calc/settlement';
 import { encodePayoutShareData, decodePayoutShareData } from '@/lib/sharing/payout-share';
 import { getLocalStorage, setLocalStorage, removeLocalStorage } from '@/lib/storage/local-storage';
-import { PAYOUT_STORAGE_KEY, MAX_ROWS } from '@/lib/constants';
+import { PAYOUT_STORAGE_KEY, MAX_ROWS, SELECTED_GROUP_CHANGED_EVENT } from '@/lib/constants';
 import { useSettings } from './useSettings';
 import { useGroups } from './useGroups';
 
@@ -86,6 +86,18 @@ export function usePayoutCalculator() {
       .filter((b) => Math.abs(b.amount) >= 0.005);
     return computeGreedyTransactions(balances);
   }, [rows, settlementMode]);
+
+  // Sync when selected group is changed from elsewhere (e.g. SelectGroupModal from hamburger or other tab)
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<{ selectedGroupId: string | null }>).detail;
+      if (detail && 'selectedGroupId' in detail) {
+        setSelectedGroupIdInternal(detail.selectedGroupId ?? null);
+      }
+    };
+    window.addEventListener(SELECTED_GROUP_CHANGED_EVENT, handler);
+    return () => window.removeEventListener(SELECTED_GROUP_CHANGED_EVENT, handler);
+  }, []);
 
   // When user changes group selection, apply that group's default buy-in (or profile default if none)
   const setSelectedGroupId = useCallback(
@@ -252,16 +264,18 @@ export function usePayoutCalculator() {
   const clearTable = useCallback(() => {
     nextId.current = 0;
     setCurrentSessionId(null);
+    setSelectedGroupIdInternal(null);
+    const defaultBuyIn = settings.gameSettings.defaultBuyIn ?? '30';
     setRows([
-      { id: generateId(), name: '', buyIn: effectiveDefaultBuyIn, cashOut: '', settled: false },
-      { id: generateId(), name: '', buyIn: effectiveDefaultBuyIn, cashOut: '', settled: false },
+      { id: generateId(), name: '', buyIn: defaultBuyIn, cashOut: '', settled: false },
+      { id: generateId(), name: '', buyIn: defaultBuyIn, cashOut: '', settled: false },
     ]);
-    setBuyInRaw(effectiveDefaultBuyIn);
+    setBuyInRaw(defaultBuyIn);
     setDeleteMode(false);
     setCheckboxesVisible(false);
     setShowSuspects(false);
     removeLocalStorage(PAYOUT_STORAGE_KEY);
-  }, [effectiveDefaultBuyIn]);
+  }, [settings.gameSettings.defaultBuyIn]);
 
   /** Call after save: first save passes new session id and new player ids; subsequent saves pass same session id and ids used for upsert. Empty-name rows get undefined. */
   const setSavedSession = useCallback((sessionId: string, playerIds: (string | undefined)[]) => {

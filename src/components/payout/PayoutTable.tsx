@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { usePayoutCalculator } from '@/hooks/usePayoutCalculator';
-import { useGroups } from '@/hooks/useGroups';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import { getRepository } from '@/lib/data/sync-repository';
 import { clearQueueEntriesForSession } from '@/lib/sync/sync-queue';
@@ -11,15 +10,29 @@ import { NavMenu } from '@/components/layout/NavMenu';
 import { PayoutRow } from './PayoutRow';
 import { SettlementPanel } from './SettlementPanel';
 import { useToast } from '@/hooks/useToast';
+import { useSelectGroupModal } from '@/hooks/useSelectGroupModal';
 import { fmt, fmtInt } from '@/lib/calc/formatting';
 
 export function PayoutTable() {
   const calc = usePayoutCalculator();
   const { showToast } = useToast();
   const { user } = useAuth();
-  const { groups, loggedIn } = useGroups();
+  const { setOpenSelectGroupModal } = useSelectGroupModal();
+  const hasOpenedForNoGroupRef = useRef(false);
   const [savingSession, setSavingSession] = useState(false);
   const [endSessionModalOpen, setEndSessionModalOpen] = useState(false);
+
+  // When user has a group selected, allow auto-open again after they clear
+  useEffect(() => {
+    if (calc.selectedGroupId) hasOpenedForNoGroupRef.current = false;
+  }, [calc.selectedGroupId]);
+
+  // Prompt to select a group when app loads (or returns to payout page) with no group selected
+  useEffect(() => {
+    if (!calc.initialized || calc.selectedGroupId || hasOpenedForNoGroupRef.current) return;
+    hasOpenedForNoGroupRef.current = true;
+    setOpenSelectGroupModal(true);
+  }, [calc.initialized, calc.selectedGroupId, setOpenSelectGroupModal]);
 
   const openEndSessionModal = () => {
     // "End session" includes settle flow: lock table + show settlement UI
@@ -36,6 +49,7 @@ export function PayoutTable() {
   const handleClear = async () => {
     if (calc.currentSessionId) await clearQueueEntriesForSession(calc.currentSessionId);
     calc.clearTable();
+    setOpenSelectGroupModal(true);
   };
 
   const handleSaveSession = async () => {
@@ -232,27 +246,6 @@ export function PayoutTable() {
                         🧹 Clear
                       </button>
                       <div className="spacer" />
-                      {loggedIn && (
-                        <div className="buyin-container">
-                          <label className="buyin-label" htmlFor="groupSelectPayout">
-                            Group
-                          </label>
-                          <select
-                            id="groupSelectPayout"
-                            className="input-field buyin-input"
-                            value={calc.selectedGroupId ?? ''}
-                            onChange={(e) => calc.setSelectedGroupId(e.target.value || null)}
-                            disabled={calc.tableLocked}
-                          >
-                            <option value="">No group</option>
-                            {groups.map((g) => (
-                              <option key={g.id} value={g.id}>
-                                {g.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      )}
                       <div className="buyin-container">
                         <label className="buyin-label" htmlFor="buyInInput">
                           Buy-In
@@ -328,7 +321,7 @@ export function PayoutTable() {
             >
               👥 Usual Suspects
             </button>
-            {loggedIn && (
+            {user && (
               <button
                 className="btn btn-secondary btn-wide"
                 type="button"
@@ -358,7 +351,7 @@ export function PayoutTable() {
       </div>
 
       {/* End session confirmation modal */}
-      {loggedIn && endSessionModalOpen && (
+      {user && endSessionModalOpen && (
         <div className="modal active" role="dialog" aria-modal="true" aria-labelledby="end-session-title">
           <div className="modal-overlay" onClick={closeEndSessionModal} />
           <div className="modal-content" role="document">
