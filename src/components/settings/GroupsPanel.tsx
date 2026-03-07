@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSettings } from '@/hooks/useSettings';
 import { useGroups } from '@/hooks/useGroups';
 import { useAuth } from '@/lib/auth/AuthProvider';
-import { BASE_PATH } from '@/lib/constants';
+import { BASE_PATH, getSiteOrigin } from '@/lib/constants';
 
 const CURRENCIES = ['EUR', 'USD', 'GBP'];
 const SETTLEMENT_MODES = [
@@ -23,8 +23,8 @@ export function GroupsPanel() {
     updateGroup,
     deleteGroup,
     getGroupMembersWithIds,
-    addGroupMember,
     removeGroupMember,
+    reload: reloadGroups,
   } = useGroups();
 
   const [view, setView] = useState<'list' | 'new' | 'edit'>('list');
@@ -39,11 +39,16 @@ export function GroupsPanel() {
   const [defaultBuyIn, setDefaultBuyIn] = useState('30');
   const [settlementMode, setSettlementMode] = useState<'greedy' | 'banker'>('greedy');
   const [members, setMembers] = useState<{ name: string; revtag: string; user_id: string }[]>([]);
-  const [addMemberUserId, setAddMemberUserId] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [leaveConfirm, setLeaveConfirm] = useState(false);
   const [copiedInvite, setCopiedInvite] = useState(false);
+
+  const isCreator = useMemo(
+    () => Boolean(editingGroup && user && editingGroup.created_by === user.id),
+    [editingGroup, user]
+  );
 
   const resetFormToDefaults = useCallback(() => {
     setName('');
@@ -51,8 +56,8 @@ export function GroupsPanel() {
     setDefaultBuyIn('30');
     setSettlementMode('greedy');
     setMembers([]);
-    setAddMemberUserId('');
     setDeleteConfirm(false);
+    setLeaveConfirm(false);
     setError(null);
   }, []);
 
@@ -140,23 +145,6 @@ export function GroupsPanel() {
     }
   };
 
-  const handleAddMember = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const uid = addMemberUserId.trim();
-    if (!uid || !editingGroupId) return;
-    setSubmitting(true);
-    setError(null);
-    try {
-      await addGroupMember(editingGroupId, uid);
-      setAddMemberUserId('');
-      loadMembers();
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   const handleRemoveMember = async (userId: string) => {
     if (!editingGroupId) return;
     setSubmitting(true);
@@ -177,6 +165,21 @@ export function GroupsPanel() {
     setError(null);
     try {
       await deleteGroup(editingGroupId);
+      goToList();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleLeaveGroup = async () => {
+    if (!editingGroupId || !user || !leaveConfirm) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      await removeGroupMember(editingGroupId, user.id);
+      await reloadGroups();
       goToList();
     } catch (e) {
       setError((e as Error).message);
@@ -282,116 +285,160 @@ export function GroupsPanel() {
             <div className="space-y-6">
               {error && <div className="text-red-500 text-sm">{error}</div>}
 
-              <section>
-                <h3 className="font-semibold mb-2">Group settings</h3>
-                <form onSubmit={handleSaveSettings} className="space-y-3">
-                  <label className="settings-field block">
-                    <span className="settings-label">Name</span>
-                    <input className="input-field w-full" type="text" value={name} onChange={(e) => setName(e.target.value)} required />
-                  </label>
-                  <label className="settings-field block">
-                    <span className="settings-label">Currency</span>
-                    <select className="input-field w-full" value={currency} onChange={(e) => setCurrency(e.target.value)}>
-                      {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                  </label>
-                  <label className="settings-field block">
-                    <span className="settings-label">Default buy-in</span>
-                    <input className="input-field w-full" type="text" value={defaultBuyIn} onChange={(e) => setDefaultBuyIn(e.target.value)} />
-                  </label>
-                  <label className="settings-field block">
-                    <span className="settings-label">Settlement mode</span>
-                    <select className="input-field w-full" value={settlementMode} onChange={(e) => setSettlementMode(e.target.value as 'greedy' | 'banker')}>
-                      {SETTLEMENT_MODES.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
-                    </select>
-                  </label>
-                  <button type="submit" className="btn btn-primary" disabled={submitting}>{submitting ? 'Saving…' : 'Save settings'}</button>
-                </form>
-              </section>
-
-              <section>
-                <h3 className="font-semibold mb-2">Players</h3>
-                <p className="text-sm muted-text mb-2">Members appear in the "usual suspects" list when this group is selected.</p>
-                {members.length === 0 ? (
-                  <p className="text-sm muted-text mb-2">No members yet.</p>
-                ) : (
-                  <ul className="settings-list mb-3">
-                    {members.map((m) => (
-                      <li key={m.user_id} className="settings-item-btn flex items-center justify-between gap-2">
-                        <span>{m.name}</span>
-                        <button type="button" className="btn btn-secondary text-sm" onClick={() => handleRemoveMember(m.user_id)} disabled={submitting} aria-label={`Remove ${m.name}`}>
-                          Remove
+              {!isCreator ? (
+                <>
+                  <section>
+                    <h3 className="font-semibold mb-2">{editingGroup.name}</h3>
+                    <p className="text-sm muted-text mb-2">You are a member of this group. Members appear in the player list when this group is selected.</p>
+                  </section>
+                  <section>
+                    <h3 className="font-semibold mb-2">Players</h3>
+                    {members.length === 0 ? (
+                      <p className="text-sm muted-text mb-2">No members yet.</p>
+                    ) : (
+                      <ul className="list-none p-0 m-0 mb-3 space-y-1">
+                        {members.map((m) => {
+                          const role = m.user_id === editingGroup.created_by ? 'owner' : 'member';
+                          return (
+                            <li key={m.user_id} className="flex items-center justify-between gap-2 min-h-[36px] py-0 px-2 rounded-md bg-[rgba(255,255,255,0.04)] border border-[var(--color-outline)] text-sm leading-tight">
+                              <span className="truncate min-w-0">{m.name}</span>
+                              <span className="shrink-0 text-xs px-2 py-0.5 rounded muted-text bg-[rgba(255,255,255,0.06)]">{role}</span>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </section>
+                  <section className="pt-3 border-t border-[var(--color-outline)]">
+                    <h3 className="font-semibold mb-2">Leave group</h3>
+                    <p className="text-sm muted-text mb-2">You will no longer see this group or its players in the app.</p>
+                    {!leaveConfirm ? (
+                      <button type="button" className="btn btn-secondary" onClick={() => setLeaveConfirm(true)}>
+                        Leave group
+                      </button>
+                    ) : (
+                      <div className="flex gap-2 items-center flex-wrap">
+                        <span className="text-sm">Leave this group?</span>
+                        <button type="button" className="btn btn-primary" onClick={handleLeaveGroup} disabled={submitting}>
+                          {submitting ? 'Leaving…' : 'Yes, leave'}
                         </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                <form onSubmit={handleAddMember} className="flex gap-2 flex-wrap items-center">
-                  <input className="input-field flex-1 min-w-0" type="text" placeholder="User ID (UUID) to add" value={addMemberUserId} onChange={(e) => setAddMemberUserId(e.target.value)} />
-                  <button type="submit" className="btn btn-primary" disabled={submitting || !addMemberUserId.trim()}>
-                    Add player
-                  </button>
-                </form>
-              </section>
+                        <button type="button" className="btn btn-secondary" onClick={() => setLeaveConfirm(false)} disabled={submitting}>
+                          Cancel
+                        </button>
+                      </div>
+                    )}
+                  </section>
+                </>
+              ) : (
+                <>
+                  <section>
+                    <h3 className="font-semibold mb-2">Group settings</h3>
+                    <form onSubmit={handleSaveSettings} className="space-y-3">
+                      <label className="settings-field block">
+                        <span className="settings-label">Name</span>
+                        <input className="input-field w-full" type="text" value={name} onChange={(e) => setName(e.target.value)} required />
+                      </label>
+                      <label className="settings-field block">
+                        <span className="settings-label">Currency</span>
+                        <select className="input-field w-full" value={currency} onChange={(e) => setCurrency(e.target.value)}>
+                          {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                      </label>
+                      <label className="settings-field block">
+                        <span className="settings-label">Default buy-in</span>
+                        <input className="input-field w-full" type="text" value={defaultBuyIn} onChange={(e) => setDefaultBuyIn(e.target.value)} />
+                      </label>
+                      <label className="settings-field block">
+                        <span className="settings-label">Settlement mode</span>
+                        <select className="input-field w-full" value={settlementMode} onChange={(e) => setSettlementMode(e.target.value as 'greedy' | 'banker')}>
+                          {SETTLEMENT_MODES.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
+                        </select>
+                      </label>
+                      <button type="submit" className="btn btn-primary" disabled={submitting}>{submitting ? 'Saving…' : 'Save settings'}</button>
+                    </form>
+                  </section>
 
-              <section>
-                <h3 className="font-semibold mb-2">Invitation link</h3>
-                <p className="text-sm muted-text mb-2">Share this link so others can join the group. Anyone with the link can join if they are signed in.</p>
-                {typeof window !== 'undefined' && editingGroupId && editingGroup && (
-                  <div className="flex gap-2 items-center flex-wrap">
-                    <input
-                      readOnly
-                      type="text"
-                      className="input-field flex-1 min-w-0 font-mono text-sm"
-                      value={`${window.location.origin}${BASE_PATH}/invite?group=${editingGroupId}&name=${encodeURIComponent(editingGroup.name)}`}
-                      aria-label="Group invitation link"
-                    />
-                    <button
-                      type="button"
-                      className="btn btn-primary whitespace-nowrap"
-                      onClick={async () => {
-                        const url = `${window.location.origin}${BASE_PATH}/invite?group=${editingGroupId}&name=${encodeURIComponent(editingGroup.name)}`;
-                        try {
-                          await navigator.clipboard.writeText(url);
-                          setCopiedInvite(true);
-                          setTimeout(() => setCopiedInvite(false), 2000);
-                        } catch {
-                          // fallback: select the input so user can copy manually
-                          const el = document.querySelector<HTMLInputElement>('input[aria-label="Group invitation link"]');
-                          el?.select();
-                        }
-                      }}
-                    >
-                      {copiedInvite ? 'Copied!' : 'Copy link'}
-                    </button>
-                  </div>
-                )}
-              </section>
+                  <section>
+                    <h3 className="font-semibold mb-2">Players</h3>
+                    <p className="text-sm muted-text mb-2">Members appear in the "usual suspects" list when this group is selected.</p>
+                    {members.length === 0 ? (
+                      <p className="text-sm muted-text mb-2">No members yet.</p>
+                    ) : (
+                      <ul className="list-none p-0 m-0 mb-3 space-y-1">
+                        {members.map((m) => {
+                          const role = m.user_id === editingGroup.created_by ? 'owner' : 'member';
+                          return (
+                            <li key={m.user_id} className="flex items-center justify-between gap-2 min-h-[36px] py-0 px-2 rounded-md bg-[rgba(255,255,255,0.04)] border border-[var(--color-outline)] text-sm leading-tight">
+                              <span className="truncate min-w-0">{m.name}</span>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className="text-xs px-2 py-0.5 rounded muted-text bg-[rgba(255,255,255,0.06)]">{role}</span>
+                                {role === 'member' && (
+                                  <button type="button" className="w-5 h-5 flex items-center justify-center rounded hover:bg-[rgba(255,255,255,0.1)] muted-text hover:text-[var(--color-text)] text-sm" onClick={() => handleRemoveMember(m.user_id)} disabled={submitting} aria-label={`Remove ${m.name}`}>
+                                    ×
+                                  </button>
+                                )}
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </section>
 
-              <section>
-                <h3 className="font-semibold mb-2">Roles</h3>
-                <p className="text-sm muted-text">All members are players. Role-based permissions can be added later.</p>
-              </section>
+                  <section>
+                    <h3 className="font-semibold mb-2">Invitation link</h3>
+                    <p className="text-sm muted-text mb-2">Share this link so others can join the group. Anyone with the link can join if they are signed in.</p>
+                    {typeof window !== 'undefined' && editingGroupId && editingGroup && (
+                      <div className="flex gap-2 items-center flex-wrap">
+                        <input
+                          readOnly
+                          type="text"
+                          className="input-field flex-1 min-w-0 font-mono text-sm"
+                          value={`${getSiteOrigin()}${BASE_PATH}/invite?group=${editingGroupId}&name=${encodeURIComponent(editingGroup.name)}`}
+                          aria-label="Group invitation link"
+                        />
+                        <button
+                          type="button"
+                          className="btn btn-primary whitespace-nowrap"
+                          onClick={async () => {
+                            const url = `${getSiteOrigin()}${BASE_PATH}/invite?group=${editingGroupId}&name=${encodeURIComponent(editingGroup.name)}`;
+                            try {
+                              await navigator.clipboard.writeText(url);
+                              setCopiedInvite(true);
+                              setTimeout(() => setCopiedInvite(false), 2000);
+                            } catch {
+                              const el = document.querySelector<HTMLInputElement>('input[aria-label="Group invitation link"]');
+                              el?.select();
+                            }
+                          }}
+                        >
+                          {copiedInvite ? 'Copied!' : 'Copy link'}
+                        </button>
+                      </div>
+                    )}
+                  </section>
 
-              <section className="pt-3 border-t border-panel">
-                <h3 className="font-semibold mb-2 text-red-600 dark:text-red-400">Danger zone</h3>
-                <p className="text-sm muted-text mb-2">Deleting this group cannot be undone.</p>
-                {!deleteConfirm ? (
-                  <button type="button" className="btn btn-secondary text-red-600 dark:text-red-400 border-red-600/50" onClick={() => setDeleteConfirm(true)}>
-                    Delete group
-                  </button>
-                ) : (
-                  <div className="flex gap-2 items-center flex-wrap">
-                    <span className="text-sm">Are you sure?</span>
-                    <button type="button" className="btn btn-primary bg-red-600 hover:bg-red-700" onClick={handleDeleteGroup} disabled={submitting}>
-                      {submitting ? 'Deleting…' : 'Yes, delete'}
-                    </button>
-                    <button type="button" className="btn btn-secondary" onClick={() => setDeleteConfirm(false)} disabled={submitting}>
-                      Cancel
-                    </button>
-                  </div>
-                )}
-              </section>
+                  <section className="pt-3 border-t border-panel">
+                    <h3 className="font-semibold mb-2 text-red-600 dark:text-red-400">Danger zone</h3>
+                    <p className="text-sm muted-text mb-2">Deleting this group cannot be undone.</p>
+                    {!deleteConfirm ? (
+                      <button type="button" className="btn btn-secondary text-red-600 dark:text-red-400 border-red-600/50" onClick={() => setDeleteConfirm(true)}>
+                        Delete group
+                      </button>
+                    ) : (
+                      <div className="flex gap-2 items-center flex-wrap">
+                        <span className="text-sm">Are you sure?</span>
+                        <button type="button" className="btn btn-primary bg-red-600 hover:bg-red-700" onClick={handleDeleteGroup} disabled={submitting}>
+                          {submitting ? 'Deleting…' : 'Yes, delete'}
+                        </button>
+                        <button type="button" className="btn btn-secondary" onClick={() => setDeleteConfirm(false)} disabled={submitting}>
+                          Cancel
+                        </button>
+                      </div>
+                    )}
+                  </section>
+                </>
+              )}
             </div>
           )}
         </div>

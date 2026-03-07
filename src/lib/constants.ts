@@ -11,3 +11,19 @@ export const APP_VERSION = 'Version 2.0';
 export const MIGRATION_FLAG_KEY = 'poker-migrated:v1';
 /** Base path for the app (must match next.config basePath). Used for invite links. */
 export const BASE_PATH = '/ChipHappens';
+
+/**
+ * Origin (protocol + host) for invite and other share links. Set NEXT_PUBLIC_SITE_URL in env
+ * (e.g. https://cahitugur.github.io) so invite links never use localhost. If unset, falls back to
+ * current origin in the browser.
+ */
+export function getSiteOrigin(): string {
+  const fromEnv = process.env.NEXT_PUBLIC_SITE_URL;
+  if (fromEnv) {
+    return fromEnv.replace(/\/$/, '');
+  }
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  return '';
+}
