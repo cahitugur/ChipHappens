@@ -8,6 +8,8 @@ import { fmt } from '@/lib/calc/formatting';
 import { useEffect, useState } from 'react';
 import type { LeaderboardRow } from '@/lib/types';
 import { NavMenu } from '@/components/layout/NavMenu';
+import { getLocalStorage, setLocalStorage } from '@/lib/storage/local-storage';
+import { PAYOUT_STORAGE_KEY, SELECTED_GROUP_CHANGED_EVENT } from '@/lib/constants';
 
 type Period = 'all' | '30' | '90' | 'year';
 
@@ -45,6 +47,26 @@ export default function LeaderboardPage() {
   const [error, setError] = useState<string | null>(null);
 
   const { fromDate, toDate } = getDateRange(period);
+
+  // Initialize group from payout calculator's persisted selection
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const saved = getLocalStorage<{ selectedGroupId?: string }>(PAYOUT_STORAGE_KEY);
+    const id = saved?.selectedGroupId ?? '';
+    if (id) setGroupId(id);
+  }, []);
+
+  // Sync when group is changed elsewhere (e.g. SelectGroupModal)
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<{ selectedGroupId: string | null }>).detail;
+      if (detail && 'selectedGroupId' in detail) {
+        setGroupId(detail.selectedGroupId ?? '');
+      }
+    };
+    window.addEventListener(SELECTED_GROUP_CHANGED_EVENT, handler);
+    return () => window.removeEventListener(SELECTED_GROUP_CHANGED_EVENT, handler);
+  }, []);
 
   useEffect(() => {
     if (!user || !groupId) {
@@ -124,7 +146,22 @@ export default function LeaderboardPage() {
               <select
                 className="input-field w-full"
                 value={groupId}
-                onChange={(e) => setGroupId(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setGroupId(value);
+                  const existing = getLocalStorage<Record<string, unknown>>(PAYOUT_STORAGE_KEY);
+                  const next = existing
+                    ? { ...existing, selectedGroupId: value || undefined }
+                    : { selectedGroupId: value || undefined };
+                  setLocalStorage(PAYOUT_STORAGE_KEY, next);
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(
+                      new CustomEvent(SELECTED_GROUP_CHANGED_EVENT, {
+                        detail: { selectedGroupId: value || null },
+                      })
+                    );
+                  }
+                }}
               >
                 <option value="">Select a group</option>
                 {groups.map((g) => (
