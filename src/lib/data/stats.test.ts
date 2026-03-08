@@ -53,6 +53,8 @@ describe('getGroupLeaderboard', () => {
           total_sessions: 10,
           win_count: 6,
           loss_count: 4,
+          avg_profit: 15.05,
+          max_session_profit: 80,
         },
       ],
       error: null,
@@ -66,6 +68,8 @@ describe('getGroupLeaderboard', () => {
       total_sessions: 10,
       win_count: 6,
       loss_count: 4,
+      avg_profit: 15.05,
+      max_session_profit: 80,
     });
   });
 

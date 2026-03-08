@@ -139,6 +139,8 @@ export async function getGroupLeaderboard(
     total_sessions: number;
     win_count: number;
     loss_count: number;
+    avg_profit?: number;
+    max_session_profit?: number;
   }>;
   return rows.map((r) => ({
     user_id: r.user_id,
@@ -147,5 +149,7 @@ export async function getGroupLeaderboard(
     total_sessions: Number(r.total_sessions),
     win_count: Number(r.win_count),
     loss_count: Number(r.loss_count),
+    avg_profit: Number(r.avg_profit ?? 0),
+    max_session_profit: Number(r.max_session_profit ?? 0),
   }));
 }

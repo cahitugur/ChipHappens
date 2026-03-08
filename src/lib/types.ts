@@ -80,6 +80,8 @@ export interface LeaderboardRow {
   total_sessions: number;
   win_count: number;
   loss_count: number;
+  avg_profit: number;
+  max_session_profit: number;
 }
 
 /* ── Data Models ── */
