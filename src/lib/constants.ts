@@ -2,6 +2,10 @@ export const MAX_ROWS = 32;
 export const PAYOUT_STORAGE_KEY = 'poker-payout:v1';
 /** Dispatched when selected group is changed (e.g. from SelectGroupModal). Detail: { selectedGroupId: string | null }. */
 export const SELECTED_GROUP_CHANGED_EVENT = 'chiphappens:selectedGroupChanged';
+/** Dispatched when group membership changes (add/remove member). Detail: { groupId: string }. */
+export const GROUP_MEMBERS_CHANGED_EVENT = 'chiphappens:groupMembersChanged';
+/** Dispatched when settings modal closes; calculators refetch selected group members so Usual Suspects stay in sync. */
+export const SETTINGS_MODAL_CLOSED_EVENT = 'chiphappens:settingsModalClosed';
 export const SIDEPOT_STORAGE_KEY = 'poker-sidepot:v1';
 export const SETTINGS_STORAGE_KEY = 'poker-calc-settings';
 export const SESSIONS_STORAGE_KEY = 'poker-sessions:v1';

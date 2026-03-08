@@ -6,6 +6,7 @@ import { getRepository } from '@/lib/data/sync-repository';
 import type { GroupMemberWithId } from '@/lib/data/repository';
 import type { DbGroup } from '@/lib/types';
 import type { UsualSuspect } from '@/lib/types';
+import { GROUP_MEMBERS_CHANGED_EVENT } from '@/lib/constants';
 
 export interface GroupsContextValue {
   groups: DbGroup[];
@@ -107,6 +108,9 @@ export function GroupsProvider({ children }: { children: ReactNode }) {
       const repo = getRepository(true);
       await repo.addGroupMember(groupId, userId);
       await loadGroups();
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent(GROUP_MEMBERS_CHANGED_EVENT, { detail: { groupId } }));
+      }
     },
     [loggedIn, loadGroups]
   );
@@ -117,6 +121,9 @@ export function GroupsProvider({ children }: { children: ReactNode }) {
       const repo = getRepository(true);
       await repo.removeGroupMember(groupId, userId);
       await loadGroups();
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent(GROUP_MEMBERS_CHANGED_EVENT, { detail: { groupId } }));
+      }
     },
     [loggedIn, loadGroups]
   );

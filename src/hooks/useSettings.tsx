@@ -19,14 +19,20 @@ import {
 import { useToast } from './useToast';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import { getRepository } from '@/lib/data/sync-repository';
+import { SETTINGS_MODAL_CLOSED_EVENT } from '@/lib/constants';
 
 type SettingsPanel = 'hub' | 'profile' | 'groups' | 'gameDefaults' | null;
+
+export type GroupsInitialView = 'list' | 'new' | null;
 
 interface SettingsContextValue {
   settings: SettingsData;
   settingsModalOpen: boolean;
   activePanel: SettingsPanel;
+  initialGroupsView: GroupsInitialView;
+  setInitialGroupsView: (view: GroupsInitialView) => void;
   openSettingsModal: () => void;
+  openSettingsToNewGroup: () => void;
   closeSettingsModal: () => void;
   setActivePanel: (panel: SettingsPanel) => void;
   updateProfile: (profile: SettingsData['profile']) => Promise<boolean>;
@@ -50,6 +56,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<SettingsData>(defaultSettings);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [activePanel, setActivePanel] = useState<SettingsPanel>(null);
+  const [initialGroupsView, setInitialGroupsView] = useState<GroupsInitialView>(null);
   const { showToast } = useToast();
   const { user } = useAuth();
   const loggedIn = !!user;
@@ -75,12 +82,23 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   const openSettingsModal = useCallback(() => {
     setActivePanel('hub');
+    setInitialGroupsView(null);
+    setSettingsModalOpen(true);
+  }, []);
+
+  const openSettingsToNewGroup = useCallback(() => {
+    setActivePanel('groups');
+    setInitialGroupsView('new');
     setSettingsModalOpen(true);
   }, []);
 
   const closeSettingsModal = useCallback(() => {
     setSettingsModalOpen(false);
     setActivePanel(null);
+    setInitialGroupsView(null);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent(SETTINGS_MODAL_CLOSED_EVENT));
+    }
   }, []);
 
   const updateProfile = useCallback(
@@ -167,7 +185,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         settings,
         settingsModalOpen,
         activePanel,
+        initialGroupsView,
+        setInitialGroupsView,
         openSettingsModal,
+        openSettingsToNewGroup,
         closeSettingsModal,
         setActivePanel,
         updateProfile,

@@ -7,7 +7,13 @@ import { calculatePayouts } from '@/lib/calc/payout';
 import { computeGreedyTransactions } from '@/lib/calc/settlement';
 import { encodePayoutShareData, decodePayoutShareData } from '@/lib/sharing/payout-share';
 import { getLocalStorage, setLocalStorage, removeLocalStorage } from '@/lib/storage/local-storage';
-import { PAYOUT_STORAGE_KEY, MAX_ROWS, SELECTED_GROUP_CHANGED_EVENT } from '@/lib/constants';
+import {
+  PAYOUT_STORAGE_KEY,
+  MAX_ROWS,
+  SELECTED_GROUP_CHANGED_EVENT,
+  GROUP_MEMBERS_CHANGED_EVENT,
+  SETTINGS_MODAL_CLOSED_EVENT,
+} from '@/lib/constants';
 import { useSettings } from './useSettings';
 import { useGroups } from './useGroups';
 
@@ -98,6 +104,27 @@ export function usePayoutCalculator() {
     window.addEventListener(SELECTED_GROUP_CHANGED_EVENT, handler);
     return () => window.removeEventListener(SELECTED_GROUP_CHANGED_EVENT, handler);
   }, []);
+
+  // Refetch group members when membership changes or when settings modal closes (so Usual Suspects list stays in sync)
+  useEffect(() => {
+    const onMembersChanged = (e: Event) => {
+      const detail = (e as CustomEvent<{ groupId: string }>).detail;
+      if (detail?.groupId && detail.groupId === selectedGroupId) {
+        getGroupMembers(selectedGroupId).then(setGroupMembers).catch(() => setGroupMembers([]));
+      }
+    };
+    const onSettingsClosed = () => {
+      if (selectedGroupId) {
+        getGroupMembers(selectedGroupId).then(setGroupMembers).catch(() => setGroupMembers([]));
+      }
+    };
+    window.addEventListener(GROUP_MEMBERS_CHANGED_EVENT, onMembersChanged);
+    window.addEventListener(SETTINGS_MODAL_CLOSED_EVENT, onSettingsClosed);
+    return () => {
+      window.removeEventListener(GROUP_MEMBERS_CHANGED_EVENT, onMembersChanged);
+      window.removeEventListener(SETTINGS_MODAL_CLOSED_EVENT, onSettingsClosed);
+    };
+  }, [selectedGroupId, getGroupMembers]);
 
   // When user changes group selection, apply that group's default buy-in (or profile default if none)
   const setSelectedGroupId = useCallback(

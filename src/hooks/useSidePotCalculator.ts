@@ -6,7 +6,12 @@ import { parseNum, fmt, fmtInt } from '@/lib/calc/formatting';
 import { calculateSidePots, calculateWinnings } from '@/lib/calc/sidepot';
 import { encodeSidePotShareData, decodeSidePotShareData } from '@/lib/sharing/sidepot-share';
 import { getLocalStorage } from '@/lib/storage/local-storage';
-import { PAYOUT_STORAGE_KEY, MAX_ROWS } from '@/lib/constants';
+import {
+  PAYOUT_STORAGE_KEY,
+  MAX_ROWS,
+  GROUP_MEMBERS_CHANGED_EVENT,
+  SETTINGS_MODAL_CLOSED_EVENT,
+} from '@/lib/constants';
 import { useSettings } from './useSettings';
 import { useGroups } from './useGroups';
 
@@ -91,6 +96,27 @@ export function useSidePotCalculator() {
       .then(setGroupMembers)
       .catch(() => setGroupMembers([]));
   }, [payoutSelectedGroupId, getGroupMembers, groups]);
+
+  // Refetch group members when membership changes or when settings modal closes (so Usual Suspects list stays in sync)
+  useEffect(() => {
+    const onMembersChanged = (e: Event) => {
+      const detail = (e as CustomEvent<{ groupId: string }>).detail;
+      if (detail?.groupId && detail.groupId === payoutSelectedGroupId) {
+        getGroupMembers(payoutSelectedGroupId).then(setGroupMembers).catch(() => setGroupMembers([]));
+      }
+    };
+    const onSettingsClosed = () => {
+      if (payoutSelectedGroupId) {
+        getGroupMembers(payoutSelectedGroupId).then(setGroupMembers).catch(() => setGroupMembers([]));
+      }
+    };
+    window.addEventListener(GROUP_MEMBERS_CHANGED_EVENT, onMembersChanged);
+    window.addEventListener(SETTINGS_MODAL_CLOSED_EVENT, onSettingsClosed);
+    return () => {
+      window.removeEventListener(GROUP_MEMBERS_CHANGED_EVENT, onMembersChanged);
+      window.removeEventListener(SETTINGS_MODAL_CLOSED_EVENT, onSettingsClosed);
+    };
+  }, [payoutSelectedGroupId, getGroupMembers]);
 
   const allSuspects = useMemo(() => {
     const raw =

@@ -1,6 +1,7 @@
 'use client';
 
 import { useGroups } from '@/hooks/useGroups';
+import { useSettings } from '@/hooks/useSettings';
 import { getLocalStorage, setLocalStorage } from '@/lib/storage/local-storage';
 import { PAYOUT_STORAGE_KEY, SELECTED_GROUP_CHANGED_EVENT } from '@/lib/constants';
 
@@ -11,6 +12,12 @@ interface SelectGroupModalProps {
 
 export function SelectGroupModal({ open, onClose }: SelectGroupModalProps) {
   const { groups, loggedIn } = useGroups();
+  const { openSettingsToNewGroup } = useSettings();
+
+  const handleCreateGroup = () => {
+    onClose();
+    openSettingsToNewGroup();
+  };
   const saved = typeof window !== 'undefined' ? getLocalStorage<{ selectedGroupId?: string }>(PAYOUT_STORAGE_KEY) : null;
   const currentId = saved?.selectedGroupId ?? '';
 
@@ -31,17 +38,26 @@ export function SelectGroupModal({ open, onClose }: SelectGroupModalProps) {
       <div className="modal-overlay" onClick={onClose} />
       <div className="modal-content" role="document">
         <div className="modal-header">
-          <h2 id="select-group-title" className="modal-title">Select group</h2>
+          <h2 id="select-group-title" className="modal-title">Select Group</h2>
           <button type="button" className="modal-close" onClick={onClose} aria-label="Close">✕</button>
         </div>
         <div className="modal-body">
           <p className="muted-text mb-4">
-            Choose a group for this session. Group members will appear in the player list. You can change this anytime from the menu.
+            Choose a group for this session. Group members will appear in the "Usual Suspects" list.
           </p>
           {!loggedIn && (
             <p className="muted-text mb-4">Sign in to create and use groups.</p>
           )}
           <div className="flex flex-col gap-2">
+            {loggedIn && (
+              <button
+                type="button"
+                className="btn btn-secondary w-full text-left"
+                onClick={handleCreateGroup}
+              >
+                ➕ Create group
+              </button>
+            )}
             <button
               type="button"
               className={`btn w-full text-left ${!currentId ? 'btn-primary' : 'btn-secondary'}`}

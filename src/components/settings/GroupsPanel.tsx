@@ -13,7 +13,7 @@ const SETTLEMENT_MODES = [
 ] as const;
 
 export function GroupsPanel() {
-  const { closeSettingsModal, setActivePanel } = useSettings();
+  const { closeSettingsModal, setActivePanel, initialGroupsView, setInitialGroupsView } = useSettings();
   const { user } = useAuth();
   const {
     groups,
@@ -85,6 +85,15 @@ export function GroupsPanel() {
       loadMembers().catch(() => setMembers([]));
     }
   }, [view, loadMembers]);
+
+  // When opened via "Create group" from Select group modal, show New group form
+  useEffect(() => {
+    if (initialGroupsView === 'new') {
+      setView('new');
+      setEditingGroupId(null);
+      setInitialGroupsView(null);
+    }
+  }, [initialGroupsView, setInitialGroupsView]);
 
   const goToList = () => {
     setView('list');
@@ -231,7 +240,7 @@ export function GroupsPanel() {
               <p className="muted-text mb-4">Create groups and add members.</p>
               {loading && <p className="muted-text mb-4">Loading groups…</p>}
               <button type="button" className="btn btn-primary w-full mb-4" onClick={openNewGroup}>
-                Create group
+                ➕ Create group
               </button>
               <div className="settings-list">
                 {groups.map((g) => (

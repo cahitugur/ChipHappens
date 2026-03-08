@@ -60,7 +60,7 @@ export function NavMenu({ activePage, playerNames = [] }: NavMenuProps) {
               setOpenSelectGroupModal(true);
             }}
           >
-            Select group
+            Select Group
           </button>
           <button
             className="menu-link"
