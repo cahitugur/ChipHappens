@@ -244,14 +244,44 @@ export default function LeaderboardPage() {
             <p className="muted-text">Loading…</p>
           ) : rows.length === 0 ? (
             <p className="muted-text">No data for this group and period.</p>
-          ) : displayRows.length === 0 ? (
-            <p className="muted-text">
-              {currentCategory?.id === 'sessions'
-                ? 'No sessions in this period.'
-                : `No players with positive ${currentCategory?.label ?? 'metric'} in this period.`}
-            </p>
           ) : (
-            <div className="table-wrap">
+            <div className="leaderboard-carousel" role="region" aria-label="Leaderboard by category">
+              <div className="leaderboard-carousel-header">
+                <span className="leaderboard-category-title">
+                  {currentCategory?.label ?? ''} — {categoryIndex + 1} of 5
+                </span>
+              </div>
+              <div className="leaderboard-dots" role="tablist" aria-label="Leaderboard category">
+                {LEADERBOARD_CATEGORIES.map((cat, i) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={i === categoryIndex}
+                    aria-label={i === categoryIndex ? `Category ${i + 1} of 5, ${cat.label}` : `Go to ${cat.label}`}
+                    className={`leaderboard-dot ${i === categoryIndex ? 'leaderboard-dot-active' : ''}`}
+                    onClick={() => setCategoryIndex(i)}
+                  />
+                ))}
+              </div>
+              <div className="leaderboard-nav-row">
+                <button
+                  type="button"
+                  className="leaderboard-arrow"
+                  aria-label="Previous category"
+                  onClick={() => setCategoryIndex((i) => (i - 1 + 5) % 5)}
+                >
+                  ‹
+                </button>
+                <div className="leaderboard-table-wrap">
+                  {displayRows.length === 0 ? (
+                    <p className="muted-text">
+                      {currentCategory?.id === 'sessions'
+                        ? 'No sessions in this period.'
+                        : `No players with positive ${currentCategory?.label ?? 'metric'} in this period.`}
+                    </p>
+                  ) : (
+                    <div className="table-wrap">
               <table className="page-payout-table">
                 <thead>
                   <tr>
@@ -285,6 +315,18 @@ export default function LeaderboardPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  className="leaderboard-arrow"
+                  aria-label="Next category"
+                  onClick={() => setCategoryIndex((i) => (i + 1) % 5)}
+                >
+                  ›
+                </button>
+              </div>
             </div>
           )}
         </div>
