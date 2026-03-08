@@ -200,6 +200,7 @@ export const cloudRepository: Repository = {
     const { error: memberError } = await supabase.from('group_members').insert({
       group_id: group.id,
       user_id: userId,
+      role: 'admin',
     });
     if (memberError) throw memberError;
     return group;

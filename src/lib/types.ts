@@ -15,6 +15,7 @@ export interface DbProfile {
 export interface DbGroup {
   id: string;
   name: string;
+  invite_code: string;
   currency: string;
   default_buy_in: string;
   settlement_mode: string;
@@ -26,6 +27,7 @@ export interface DbGroup {
 export interface DbGroupMember {
   group_id: string;
   user_id: string;
+  role: 'admin' | 'member';
   joined_at: string;
   created_at: string;
   updated_at: string;
