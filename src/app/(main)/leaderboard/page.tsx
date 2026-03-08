@@ -37,6 +37,52 @@ function winRate(row: LeaderboardRow): number {
   return (row.win_count / row.total_sessions) * 100;
 }
 
+type CategoryId = 'total_pnl' | 'pnl_per_session' | 'largest_pnl' | 'sessions' | 'win_rate';
+
+const LEADERBOARD_CATEGORIES: Array<{
+  id: CategoryId;
+  label: string;
+  filter: (row: LeaderboardRow) => boolean;
+  sort: (a: LeaderboardRow, b: LeaderboardRow) => number;
+}> = [
+  {
+    id: 'total_pnl',
+    label: 'Total PnL',
+    filter: (r) => r.total_profit > 0,
+    sort: (a, b) => b.total_profit - a.total_profit,
+  },
+  {
+    id: 'pnl_per_session',
+    label: 'PnL per session',
+    filter: (r) => r.avg_profit > 0,
+    sort: (a, b) => b.avg_profit - a.avg_profit,
+  },
+  {
+    id: 'largest_pnl',
+    label: 'Largest PnL (single session)',
+    filter: (r) => r.max_session_profit > 0,
+    sort: (a, b) => b.max_session_profit - a.max_session_profit,
+  },
+  {
+    id: 'sessions',
+    label: '# of Sessions',
+    filter: (r) => r.total_sessions >= 1,
+    sort: (a, b) => b.total_sessions - a.total_sessions,
+  },
+  {
+    id: 'win_rate',
+    label: 'Win rate',
+    filter: (r) => winRate(r) > 0,
+    sort: (a, b) => winRate(b) - winRate(a),
+  },
+];
+
+function getRowsForCategory(rows: LeaderboardRow[], categoryId: CategoryId): LeaderboardRow[] {
+  const cat = LEADERBOARD_CATEGORIES.find((c) => c.id === categoryId);
+  if (!cat) return [];
+  return rows.filter(cat.filter).slice().sort(cat.sort);
+}
+
 export default function LeaderboardPage() {
   const { user, loading: authLoading } = useAuth();
   const { groups } = useGroups();
@@ -45,6 +91,7 @@ export default function LeaderboardPage() {
   const [rows, setRows] = useState<LeaderboardRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [categoryIndex, setCategoryIndex] = useState(0);
 
   const { fromDate, toDate } = getDateRange(period);
 
@@ -124,6 +171,8 @@ export default function LeaderboardPage() {
 
   const selectedGroup = groups.find((g) => g.id === groupId);
   const currency = selectedGroup?.currency ?? '';
+  const currentCategory = LEADERBOARD_CATEGORIES[categoryIndex];
+  const displayRows = currentCategory ? getRowsForCategory(rows, currentCategory.id) : [];
 
   return (
     <div className="wrap">
@@ -209,10 +258,7 @@ export default function LeaderboardPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {rows
-                    .slice()
-                    .sort((a, b) => b.total_profit - a.total_profit)
-                    .map((row, index) => (
+                  {displayRows.map((row, index) => (
                       <tr key={row.user_id}>
                         <td>{index + 1}</td>
                         <td>{row.display_name || '—'}</td>
