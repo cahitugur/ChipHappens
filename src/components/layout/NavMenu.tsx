@@ -58,6 +58,9 @@ export function NavMenu({ activePage, playerNames = [] }: NavMenuProps) {
           <Link href="/leaderboard" onClick={() => setOpen(false)}>
             Leaderboard
           </Link>
+          <Link href="/stats" onClick={() => setOpen(false)}>
+            Stats
+          </Link>
           <button
             className="menu-link"
             onClick={(e) => {
