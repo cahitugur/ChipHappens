@@ -52,6 +52,9 @@ export function NavMenu({ activePage, playerNames = [] }: NavMenuProps) {
           <Link href={sidePotHref} onClick={() => setOpen(false)}>
             Side Pot Calculator
           </Link>
+          <Link href="/history" onClick={() => setOpen(false)}>
+            History
+          </Link>
           <button
             className="menu-link"
             onClick={(e) => {
