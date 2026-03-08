@@ -73,6 +73,15 @@ export interface PlayerStats {
   last_played: string | null;
 }
 
+export interface LeaderboardRow {
+  user_id: string;
+  display_name: string;
+  total_profit: number;
+  total_sessions: number;
+  win_count: number;
+  loss_count: number;
+}
+
 /* ── Data Models ── */
 
 export interface PayoutRowData {

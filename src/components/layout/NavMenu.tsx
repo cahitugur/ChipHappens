@@ -55,6 +55,9 @@ export function NavMenu({ activePage, playerNames = [] }: NavMenuProps) {
           <Link href="/history" onClick={() => setOpen(false)}>
             History
           </Link>
+          <Link href="/leaderboard" onClick={() => setOpen(false)}>
+            Leaderboard
+          </Link>
           <button
             className="menu-link"
             onClick={(e) => {
