@@ -83,17 +83,26 @@ export function SidePotTable() {
               />
             </svg>
           </span>
-          <div
-            className={`status ${calc.isBalanced ? 'ok' : 'warn'}`}
-            aria-live="polite"
-          >
-            <span className="dot" />
-            <span className="status-text">
-              {calc.isBalanced ? 'Balanced' : 'Unbalanced'}
-            </span>
-          </div>
           <span className="spacer" />
           <OptionsDropdown onShare={handleShare} />
+        </div>
+
+        {/* Boards selection card (above table) */}
+        <div className="boards-card card">
+          <div className="card-content boards-card-content">
+            <label className="boards-card-label" htmlFor="boardsSelect">
+              Boards
+            </label>
+            <select
+              id="boardsSelect"
+              className="select-field boards-select"
+              value={calc.boards}
+              onChange={(e) => calc.setBoards(Number(e.target.value))}
+            >
+              <option value={1}>1</option>
+              <option value={2}>2</option>
+            </select>
+          </div>
         </div>
 
         {/* Table */}
@@ -107,52 +116,25 @@ export function SidePotTable() {
               </colgroup>
               <thead>
                 <tr>
-                  <th className="controls-cell" colSpan={3}>
-                    <div className="controls">
-                      <button
-                        className="btn btn-secondary btn-session-action"
-                        type="button"
-                        onClick={calc.clearTable}
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
-                      >
-                        <span aria-hidden="true">
-                          <svg width="18" height="18" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img">
-                            <title>Poker chip</title>
-                            <circle cx="32" cy="32" r="30" fill="#d4a832" stroke="#b8860b" strokeWidth="3" />
-                            <circle cx="32" cy="32" r="22" fill="none" stroke="#b8860b" strokeWidth="2" />
-                            <circle cx="32" cy="32" r="14" fill="none" stroke="#b8860b" strokeWidth="1.5" />
-                          </svg>
-                        </span>
-                        New session
-                      </button>
-                      <div className="spacer" />
-                      <div className="boards-container">
-                        <label className="boards-label" htmlFor="boardsSelect">
-                          Boards
-                        </label>
-                        <select
-                          id="boardsSelect"
-                          className="select-field boards-select"
-                          value={calc.boards}
-                          onChange={(e) =>
-                            calc.setBoards(Number(e.target.value))
-                          }
-                        >
-                          <option value={1}>1</option>
-                          <option value={2}>2</option>
-                        </select>
-                      </div>
-                    </div>
-                  </th>
-                </tr>
-                <tr>
                   <th>Name</th>
                   <th>Bet</th>
                   <th>Won</th>
                 </tr>
               </thead>
               <tbody>
-                {/* Initial Pot Row */}
+                {/* Player Rows */}
+                {calc.rows.map((row, i) => (
+                  <SidePotRow
+                    key={row.id}
+                    name={row.name}
+                    bet={row.bet}
+                    won={calc.playerWinnings[row.name.trim()] ?? 0}
+                    onUpdateName={(v) => calc.updateRow(i, 'name', v)}
+                    onUpdateBet={(v) => calc.updateRow(i, 'bet', v)}
+                    onDelete={() => calc.removeRow(i)}
+                  />
+                ))}
+                {/* Initial Pot Row (bottom of table) */}
                 <tr className="initial-pot-row">
                   <td className="initial-pot-label">Initial Pot</td>
                   <td>
@@ -173,74 +155,9 @@ export function SidePotTable() {
                   </td>
                   <td className="payout">&nbsp;</td>
                 </tr>
-                {/* Player Rows */}
-                {calc.rows.map((row, i) => (
-                  <SidePotRow
-                    key={row.id}
-                    name={row.name}
-                    bet={row.bet}
-                    won={calc.playerWinnings[row.name.trim()] ?? 0}
-                    onUpdateName={(v) => calc.updateRow(i, 'name', v)}
-                    onUpdateBet={(v) => calc.updateRow(i, 'bet', v)}
-                    onDelete={() => calc.removeRow(i)}
-                  />
-                ))}
               </tbody>
             </table>
           </form>
-
-          {/* Summary card: Total pot, Status, Total bet/won, Difference, Players (mirrors payout calculator card) */}
-          {(() => {
-            const imbalance = calc.totalWon - calc.totalBet;
-            const imbalanceAbs = Math.abs(imbalance);
-            const imbalanceSign = imbalance >= 0 ? '+' : '-';
-            return (
-              <div
-                className={`payout-summary-card card${!calc.isBalanced ? ' payout-summary-card--unbalanced' : ''}`}
-                aria-live="polite"
-              >
-                <div className="card-content payout-summary-card-content">
-                  <div className="payout-summary-main">
-                    <span className="payout-summary-main-label">Total pot</span>
-                    <span className="payout-summary-main-value">{fmt(calc.totalBet)}</span>
-                  </div>
-                  <div className="payout-summary-sub">
-                    <div className="payout-summary-item">
-                      <span className="payout-summary-label">Total bet</span>
-                      <span className="payout-summary-value">{fmt(calc.totalBet)}</span>
-                    </div>
-                    <div className="payout-summary-item">
-                      <span className="payout-summary-label">Total won</span>
-                      <span className="payout-summary-value">{fmt(calc.totalWon)}</span>
-                    </div>
-                    {!calc.isBalanced && (
-                      <div className="payout-summary-item">
-                        <span className="payout-summary-label">Difference</span>
-                        <span
-                          className="payout-summary-value payout-summary-difference"
-                          title="|Total won − Total bet|"
-                        >
-                          {imbalanceSign}{fmt(imbalanceAbs)}
-                        </span>
-                      </div>
-                    )}
-                    <div className="payout-summary-item">
-                      <span className="payout-summary-label">Status</span>
-                      <span className={`payout-summary-value payout-summary-status ${calc.isBalanced ? 'ok' : 'warn'}`}>
-                        {calc.isBalanced ? 'Balanced' : 'Unbalanced'}
-                      </span>
-                    </div>
-                    <div className="payout-summary-item">
-                      <span className="payout-summary-label">Players</span>
-                      <span className="payout-summary-value">
-                        {calc.rows.filter((r) => r.name.trim()).length}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
         </div>
 
         {/* Pot Display */}
@@ -318,6 +235,59 @@ export function SidePotTable() {
             </div>
           )}
         </div>
+
+        {/* Summary card: Total pot, Status, Total bet/won, Difference, Players (at bottom) */}
+        {(() => {
+          const imbalance = calc.totalWon - calc.totalBet;
+          const imbalanceAbs = Math.abs(imbalance);
+          const imbalanceSign = imbalance >= 0 ? '+' : '-';
+          return (
+            <div
+              className={`payout-summary-card card${!calc.isBalanced ? ' payout-summary-card--unbalanced' : ''}`}
+              aria-live="polite"
+            >
+              <div className="card-content payout-summary-card-content">
+                <div className="payout-summary-main">
+                  <span className="payout-summary-main-label">Total pot</span>
+                  <span className="payout-summary-main-value">{fmt(calc.totalBet)}</span>
+                </div>
+                <div className="payout-summary-sub">
+                  <div className="payout-summary-item">
+                    <span className="payout-summary-label">Total bet</span>
+                    <span className="payout-summary-value">{fmt(calc.totalBet)}</span>
+                  </div>
+                  <div className="payout-summary-item">
+                    <span className="payout-summary-label">Total won</span>
+                    <span className="payout-summary-value">{fmt(calc.totalWon)}</span>
+                  </div>
+                  {!calc.isBalanced && (
+                    <div className="payout-summary-item">
+                      <span className="payout-summary-label">Difference</span>
+                      <span
+                        className="payout-summary-value payout-summary-difference"
+                        title="|Total won − Total bet|"
+                      >
+                        {imbalanceSign}{fmt(imbalanceAbs)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="payout-summary-item">
+                    <span className="payout-summary-label">Status</span>
+                    <span className={`payout-summary-value payout-summary-status ${calc.isBalanced ? 'ok' : 'warn'}`}>
+                      {calc.isBalanced ? 'Balanced' : 'Unbalanced'}
+                    </span>
+                  </div>
+                  <div className="payout-summary-item">
+                    <span className="payout-summary-label">Players</span>
+                    <span className="payout-summary-value">
+                      {calc.rows.filter((r) => r.name.trim()).length}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );

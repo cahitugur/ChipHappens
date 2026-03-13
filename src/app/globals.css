@@ -252,6 +252,23 @@ footer { text-align: center; color: var(--color-muted); font-size: 12px; padding
 .action-buttons { display: inline-flex; gap: var(--space-sm); flex-wrap: wrap; justify-content: center; }
 .action-btn-spacer { width: 44px; flex-shrink: 0; }
 
+/* Side pot: Boards selection card (above table; converted from header dropdown) */
+.boards-card { margin-bottom: var(--space-md); }
+.boards-card .card-content { padding: var(--space-sm) var(--space-md); }
+.boards-card-content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+.boards-card-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-muted);
+  font-weight: 600;
+}
+.boards-card .boards-select { width: 5ch; height: 32px; font-size: 13px; box-sizing: border-box; }
+
 /* Payout summary card (replaces Total row) */
 .payout-summary-card { margin-top: var(--space-md); }
 .payout-summary-card .card-content { padding: var(--space-sm) var(--space-md); }
