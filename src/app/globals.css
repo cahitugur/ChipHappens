@@ -300,6 +300,10 @@ footer { text-align: center; color: var(--color-muted); font-size: 12px; padding
 /* Payout summary card (replaces Total row) */
 .payout-summary-card { margin-top: var(--space-md); }
 .payout-summary-card .card-content { padding: var(--space-sm) var(--space-md); }
+.payout-summary-card--balanced {
+  border-color: rgba(34, 197, 94, 0.6);
+  background: linear-gradient(180deg, rgba(34, 197, 94, 0.06), rgba(34, 197, 94, 0.02));
+}
 .payout-summary-card--unbalanced {
   border-color: rgba(239, 68, 68, 0.6);
   background: linear-gradient(180deg, rgba(239, 68, 68, 0.08), rgba(239, 68, 68, 0.03));

@@ -355,7 +355,7 @@ export function PayoutTable() {
             const imbalanceSign = imbalance >= 0 ? '+' : '-';
             return (
           <div
-            className={`payout-summary-card card${!calc.isBalanced ? ' payout-summary-card--unbalanced' : ''}`}
+            className={`payout-summary-card card${calc.isBalanced ? ' payout-summary-card--balanced' : ' payout-summary-card--unbalanced'}`}
             aria-live="polite"
           >
             <div className="card-content payout-summary-card-content">
@@ -398,7 +398,7 @@ export function PayoutTable() {
                 <div className="payout-summary-item">
                   <span className="payout-summary-label">Players</span>
                   <span className="payout-summary-value">
-                    {calc.rows.filter((r) => r.name.trim()).length}
+                    {calc.rows.length}
                   </span>
                 </div>
               </div>
