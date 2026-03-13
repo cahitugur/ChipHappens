@@ -188,6 +188,25 @@ export function PayoutTable() {
           <OptionsDropdown onShare={handleShare} />
         </div>
 
+        {/* Buy-in card (above table; converted from header control) */}
+        <div className="buyin-card card">
+          <div className="card-content buyin-card-content">
+            <label className="buyin-card-label" htmlFor="buyInInput">
+              Buy-In
+            </label>
+            <input
+              id="buyInInput"
+              className="input-field buyin-input"
+              type="text"
+              inputMode="numeric"
+              value={calc.buyIn}
+              disabled={tableLocked}
+              onChange={(e) => calc.setBuyIn(e.target.value)}
+              onClick={(e) => (e.target as HTMLInputElement).select()}
+            />
+          </div>
+        </div>
+
         {/* Table */}
         <div className="table-wrap">
           <form onSubmit={(e) => e.preventDefault()}>
@@ -199,62 +218,6 @@ export function PayoutTable() {
                 <col className="col-payout" />
               </colgroup>
               <thead>
-                <tr>
-                  <th className="controls-cell" colSpan={4}>
-                    <div className="controls">
-                      <div className="controls-session-center" aria-hidden="true" />
-                      <div className="controls-session-wrap">
-                        {(!user || !sessionInProgress) ? (
-                          <button
-                            className="btn btn-secondary btn-session-action"
-                            type="button"
-                            disabled={tableLocked}
-                            onClick={handleNewSessionClick}
-                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
-                          >
-                            <span aria-hidden="true">
-                              <svg width="18" height="18" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img">
-                                <title>Poker chip</title>
-                                <circle cx="32" cy="32" r="30" fill="#d4a832" stroke="#b8860b" strokeWidth="3" />
-                                <circle cx="32" cy="32" r="22" fill="none" stroke="#b8860b" strokeWidth="2" />
-                                <circle cx="32" cy="32" r="14" fill="none" stroke="#b8860b" strokeWidth="1.5" />
-                              </svg>
-                            </span>
-                            New session
-                          </button>
-                        ) : (
-                        <button
-                          className="btn btn-secondary btn-session-action"
-                          type="button"
-                          disabled={tableLocked || calc.rows.length === 0}
-                          onClick={openEndSessionModal}
-                        >
-                          🏁 End session
-                        </button>
-                        )}
-                      </div>
-                      <div className="controls-right-wrap">
-                        <div className="buyin-container">
-                        <label className="buyin-label" htmlFor="buyInInput">
-                          Buy-In
-                        </label>
-                        <input
-                          id="buyInInput"
-                          className="input-field buyin-input"
-                          type="text"
-                          inputMode="numeric"
-                          value={calc.buyIn}
-                          disabled={tableLocked}
-                          onChange={(e) => calc.setBuyIn(e.target.value)}
-                          onClick={(e) =>
-                            (e.target as HTMLInputElement).select()
-                          }
-                        />
-                        </div>
-                      </div>
-                    </div>
-                  </th>
-                </tr>
                 <tr>
                   <th>Name</th>
                   <th>In</th>
@@ -284,7 +247,7 @@ export function PayoutTable() {
             </table>
           </form>
 
-        {/* Action Row */}
+        {/* Action Row: New session, End session, Add player, Usual suspects, Clear table */}
         <div className="action-row">
           <div className="action-buttons">
             <button
@@ -316,6 +279,37 @@ export function PayoutTable() {
                   <circle cx="9" cy="7" r="4" />
                   <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
                   <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+              </span>
+            </button>
+            <span className="action-btn-spacer" aria-hidden="true" />
+            <button
+              className="btn btn-secondary btn-session-action btn-icon-only"
+              type="button"
+              disabled={tableLocked}
+              onClick={handleNewSessionClick}
+              aria-label="New session"
+            >
+              <span aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+                  <path d="M21 3v5h-5" />
+                </svg>
+              </span>
+            </button>
+            {/* End session disabled until user selects a group (e.g. after New session) */}
+            <button
+              className="btn btn-secondary btn-session-action btn-icon-only"
+              type="button"
+              disabled={tableLocked || calc.rows.length === 0 || !calc.selectedGroupId}
+              onClick={openEndSessionModal}
+              aria-label="End session"
+              title={!calc.selectedGroupId ? 'Select a group (New session) first' : undefined}
+            >
+              <span aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                  <polyline points="22 4 12 14.01 9 11.01" />
                 </svg>
               </span>
             </button>

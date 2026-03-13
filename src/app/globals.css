@@ -157,6 +157,15 @@
 /* Same size for New Session, End Session, Add Player, Usual Suspects */
 .btn-session-action { min-width: 150px; }
 .btn-session-action.btn-icon-only { min-width: 0; padding: var(--space-sm) var(--space-md); }
+/* Action row: icon-only buttons blend with app background (invisible border, icons only) */
+.action-row .btn-session-action.btn-icon-only {
+  background: var(--color-bg);
+  border-color: var(--color-bg);
+}
+.action-row .btn-session-action.btn-icon-only:hover:not(:disabled) {
+  background: var(--color-panel);
+  border-color: var(--color-outline);
+}
 
 /* ── Form fields ── */
 .input-field,
@@ -184,6 +193,7 @@
 /* ── Controls row ── */
 .controls-cell { padding: var(--space-md) var(--space-lg); background: var(--color-panel); border-top: none !important; }
 .controls { display: flex; gap: var(--space-sm); align-items: flex-end; justify-content: flex-start; flex-wrap: nowrap; }
+.controls.controls--center { justify-content: center; }
 .controls .spacer { flex: 1; }
 .controls-session-wrap { flex: 0 0 auto; }
 .controls-session-center {
@@ -268,6 +278,24 @@ footer { text-align: center; color: var(--color-muted); font-size: 12px; padding
   font-weight: 600;
 }
 .boards-card .boards-select { width: 5ch; height: 32px; font-size: 13px; box-sizing: border-box; }
+
+/* Payout: Buy-in card (above table; converted from header control) */
+.buyin-card { margin-bottom: var(--space-md); }
+.buyin-card .card-content { padding: var(--space-sm) var(--space-md); }
+.buyin-card-content {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-md);
+}
+.buyin-card-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-muted);
+  font-weight: 600;
+}
+.buyin-card .buyin-input { width: 8ch; height: 32px; font-size: 13px; text-align: center; box-sizing: border-box; }
 
 /* Payout summary card (replaces Total row) */
 .payout-summary-card { margin-top: var(--space-md); }
