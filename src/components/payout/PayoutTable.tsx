@@ -308,10 +308,9 @@ export function PayoutTable() {
             <button
               className="btn btn-secondary btn-session-action btn-icon-only"
               type="button"
-              disabled={tableLocked || sessionInProgress}
+              disabled={tableLocked}
               onClick={handleNewSessionClick}
               aria-label="New session"
-              title={sessionInProgress ? 'End session (Save or Discard) to start a new session' : undefined}
             >
               <span aria-hidden="true">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg">
